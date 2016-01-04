@@ -58,6 +58,8 @@ function init()
       cell = data["cell"];
     });
 
+    var a = math.complex(2, 3);
+    console.log(a);
     console.log(cell);
 
     // SCENE
@@ -67,7 +69,7 @@ function init()
     var VIEW_ANGLE = 10, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
     camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
     scene.add(camera);
-    camera.position.set(0,0,3000);
+    camera.position.set(0,0,300);
     camera.lookAt(scene.position);
     // RENDERER
     if ( Detector.webgl )
@@ -97,24 +99,18 @@ function init()
     // CUSTOM //
     ////////////
 
-    var axisMin = -10;
-    var axisMax =  10;
-    var axisRange = axisMax - axisMin;
-
     // Generate a list of 3D points and values at those points
     for (var k = 0; k < sizez; k++)
     for (var j = 0; j < sizey; j++)
     for (var i = 0; i < sizex; i++)
     {
         // actual values
-        var x = axisMin + axisRange * i / (sizex - 1);
-        var y = axisMin + axisRange * j / (sizey - 1);
-        var z = axisMin + axisRange * k / (sizez - 1);
+        var x = i / (sizex - 1) - 0.5;
+        var y = j / (sizey - 1) - 0.5;
+        var z = k / (sizez - 1) - 0.5;
         points.push( new THREE.Vector3(x*cell[0][0]+y*cell[1][0]+z*cell[2][0],
                                        x*cell[0][1]+y*cell[1][1]+z*cell[2][1],
                                        x*cell[0][2]+y*cell[1][2]+z*cell[2][2]));
-        var value = x*x + y*y - z*z - 25;
-        values.push( value );
     }
 
     // Marching Cubes Algorithm
@@ -155,7 +151,7 @@ function init()
         // place a "1" in bit positions corresponding to vertices whose
         //   isovalue is less than given constant.
 
-        var isolevel = 0.02;
+        var isolevel = 0.05;
 
         var cubeindex = 0;
         if ( value0 < isolevel ) cubeindex |= 1;
