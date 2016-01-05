@@ -3,19 +3,22 @@
 <head>
     <title>Marching Cubes (Three.js)</title>
     <meta charset="utf-8">
-    <link rel=stylesheet href="css/base.css"/>
+    <link rel=stylesheet href="css/style.css"/>
+
+    <script src="js/three.min.js"></script>
+    <script src="js/Detector.js"></script>
+    <script src="js/Stats.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/MarchingCubesData.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/exciton.js"></script>
+
 </head>
 <body>
-
-<script src="js/three.min.js"></script>
-<script src="js/Detector.js"></script>
-<script src="js/Stats.js"></script>
-<script src="js/OrbitControls.js"></script>
-<script src="js/MarchingCubesData.js"></script>
-<script src="js/jquery.min.js"></script>
-
-<div id="ThreeJS" style="position: absolute; left:0px; top:0px"></div>
-<script src="js/exciton.js"></script>
-
+    <div class="container">
+    <div class="flex-container">
+      <div class="flex-excitonwf"><div id="excitonwf"></div></div>
+      <div class="flex-highcharts"><div id="highcharts"></div></div>
+    </div>
 </body>
 </html>
