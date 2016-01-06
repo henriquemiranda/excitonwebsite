@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Marching Cubes (Three.js)</title>
+    <title>TSS Physics - Visualization of excitons</title>
     <meta charset="utf-8">
     <link rel=stylesheet href="css/style.css"/>
 
@@ -11,12 +11,21 @@
     <script src="js/OrbitControls.js"></script>
     <script src="js/MarchingCubesData.js"></script>
     <script src="js/jquery.min.js"></script>
+    <script src="js/highcharts.js"></script>
     <script src="js/exciton.js"></script>
 
 </head>
 <body>
     <div class="container">
     <div class="flex-container">
+      <div class="flex-input">
+        <div>
+  		    <h3>Isolevel:</h3>
+          <form>
+            <input class="input-isolevel" type="range" name="points" step ="0.001" value="0.02" min="0" max="0.05" onchange="e.changeIsolevel(this.value)">
+          </form>
+        </div>
+      </div>
       <div class="flex-excitonwf"><div id="excitonwf"></div></div>
       <div class="flex-highcharts"><div id="highcharts"></div></div>
     </div>

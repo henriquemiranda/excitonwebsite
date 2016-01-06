@@ -21,6 +21,7 @@ ExcitonWf = {
   sizey: 1,
   sizez: 1,
   cell: null,
+  isolevel: 0.05,
 
   //camera
   cameraViewAngle: 10,
@@ -51,6 +52,11 @@ ExcitonWf = {
 
       //controls
       this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
+      this.controls.panSpeed = 0.3;
+      this.controls.rotateSpeed = 1.0;
+      this.controls.zoomSpeed = 1.0;
+      this.controls.staticMoving = true;
+      this.controls.dynamicDampingFactor = 0.3;
 
       //stats
       this.stats = new Stats();
@@ -111,6 +117,23 @@ ExcitonWf = {
       this.scene.add( light );
   },
 
+  removeStructure: function() {
+      var nobjects = this.scene.children.length;
+      var scene = this.scene
+      //just remove everything and then add the lights
+      for (i=nobjects-1;i>=0;i--) {
+          scene.remove(scene.children[i]);
+      }
+      this.addLights();
+  },
+
+  changeIsolevel: function(isolevel) {
+      console.log(isolevel);
+      this.isolevel = isolevel;
+      this.removeStructure();
+      this.addMarchingCubes();
+  },
+
   addMarchingCubes: function() {
 
       // Marching Cubes Algorithm
@@ -156,7 +179,7 @@ ExcitonWf = {
           // place a "1" in bit positions corresponding to vertices whose
           //   isovalue is less than given constant.
 
-          var isolevel = 0.05;
+          var isolevel = this.isolevel;
 
           var cubeindex = 0;
           if ( value0 < isolevel ) cubeindex |= 1;
@@ -294,6 +317,56 @@ ExcitonWf = {
   }
 }
 
+AbsorptionSpectra = {
+  HighchartsOptions: {
+      chart: { type: 'line'},
+      title: { text: 'Absorption Spectra' },
+      xAxis: { title: { text: 'Energy' },
+               plotLines: [] },
+      yAxis: { min: 0,
+               title: { text: 'Intensity (arb. units)' },
+               plotLines: [ {value: 0, color: '#808080' } ] },
+      tooltip: { valueSuffix: 'cm-1' },
+      plotOptions: {
+          line: {
+              animation: false
+          },
+          series: {
+              cursor: 'pointer',
+              point: { events: {
+                   click: function(event) {
+                              console.log("not implemented yet");
+                                          }
+                  }
+              }
+          }
+      },
+      legend: { enabled: false },
+      series: []
+  },
+
+  init: function(container) {
+    container.highcharts(this.HighchartsOptions);
+  },
+
+  getData: function(filename) {
+      var values;
+      $.getJSON(filename, function(data) {
+        values = data["data"]["bse/o-yambo.eps_q1_diago_bse"];
+      });
+      var x, series = [];
+      for (i=0;i<values.length;i++) {
+        x = values[i];
+        series.push(x[1]);
+      }
+
+      this.HighchartsOptions.series.push({name:  "spectra",
+                                          color: "#0066FF",
+                                          marker: {radius: 2, symbol: "circle"},
+                                          data: series });
+  }
+}
+
 $.ajaxSetup({
     async: false
 });
@@ -301,6 +374,10 @@ $.ajaxSetup({
 $(document).ready(function(){
   e = ExcitonWf;
   e.getData('datagrid.json');
-  e.init($('#excitonwf'))
+  e.init($('#excitonwf'));
   e.animate();
+
+  a = AbsorptionSpectra;
+  a.getData('bse.json');
+  a.init($('#highcharts'));
 });
