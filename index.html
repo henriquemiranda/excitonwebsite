@@ -12,6 +12,7 @@
     <script src="js/MarchingCubesData.js"></script>
     <script src="js/jquery.min.js"></script>
     <script src="js/highcharts.js"></script>
+    <script src="js/atomic_data.js"></script>
     <script src="js/exciton.js"></script>
 
 </head>
@@ -22,7 +23,7 @@
         <div>
   		    <h3>Isolevel:</h3>
           <form>
-            <input class="input-isolevel" type="range" name="points" step ="0.001" value="0.02" min="0" max="0.05" onchange="e.changeIsolevel(this.value)">
+            <input class="input-isolevel" type="range" name="points" step ="0.001" value="0.02" min="0.001" max="0.05" onchange="e.changeIsolevel(this.value)">
           </form>
         </div>
       </div>

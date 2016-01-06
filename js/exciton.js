@@ -28,6 +28,14 @@ ExcitonWf = {
   cameraNear: 0.1,
   cameraFar: 1000,
 
+  //balls
+  sphereRadius: 0.5,
+  sphereLat: 12,
+  sphereLon: 12,
+  bondRadius: 0.1,
+  bondSegments: 6,
+  bondVertical: 1,
+
   init: function(container) {
       this.container = container;
       container0 = container.get(0);
@@ -73,9 +81,9 @@ ExcitonWf = {
       for (var i = 0; i < this.sizex; i++)
       {
           // actual values
-          var x = i / (this.sizex - 1) - 0.5;
-          var y = j / (this.sizey - 1) - 0.5;
-          var z = k / (this.sizez - 1) - 0.5;
+          var x = i / (this.sizex-1);
+          var y = j / (this.sizey-1);
+          var z = k / (this.sizez-1);
 
           this.points.push( new THREE.Vector3(x*cell[0][0]+y*cell[1][0]+z*cell[2][0],
                                               x*cell[0][1]+y*cell[1][1]+z*cell[2][1],
@@ -83,16 +91,31 @@ ExcitonWf = {
       }
 
       this.addMarchingCubes();
+      this.getAtypes();
+      this.addStructure();
   },
 
   getData: function(filename) {
+    self = this;
     $.getJSON(filename, function(data) {
-      e.values = data["datagrid"];
-      e.sizex = data["nx"];
-      e.sizey = data["ny"];
-      e.sizez = data["nz"];
-      e.cell = data["cell"];
+      self.values = data["datagrid"];
+      self.sizex = data["nx"];
+      self.sizey = data["ny"];
+      self.sizez = data["nz"];
+      self.cell = data["lattice"];
+      self.atoms = data["atoms"];
+      self.natoms = self.atoms.length;
+      self.atom_numbers = data["atypes"];
     });
+
+    //get geometric center
+    this.geometricCenter = new THREE.Vector3(0,0,0);
+    for (i=0;i<this.atoms.length;i++) {
+        pos = new THREE.Vector3(this.atoms[i][1], this.atoms[i][2], this.atoms[i][3]);
+        this.geometricCenter.add(pos);
+    }
+    this.geometricCenter.multiplyScalar(1.0/this.atoms.length);
+
   },
 
   getContainerDimensions: function() {
@@ -103,6 +126,82 @@ ExcitonWf = {
           height: h,
           ratio: ( w / h )
       };
+  },
+
+  getAtypes: function() {
+      this.materials = [];
+      for (i=0;i<this.atom_numbers.length;i++) {
+          var n = this.atom_numbers[i];
+          r = jmol_colors[n][0];
+          g = jmol_colors[n][1];
+          b = jmol_colors[n][2];
+
+          var material = new THREE.MeshLambertMaterial( { blending: THREE.AdditiveBlending } );
+          material.color.setRGB (r, g, b);
+
+          this.materials.push( material );
+      }
+  },
+
+  addStructure: function(phonon) {
+      this.atomobjects = [];
+      this.bondobjects = [];
+      this.atompos = [];
+      this.bonds = [];
+
+      var sphereGeometry = new THREE.SphereGeometry(this.sphereRadius,this.sphereLat,this.sphereLon);
+
+      //add a ball for each atom
+      for (i=0; i<this.atoms.length;i++) {
+
+          object = new THREE.Mesh( sphereGeometry, this.materials[this.atoms[i][0]] );
+          pos = new THREE.Vector3(this.atoms[i][1], this.atoms[i][2], this.atoms[i][3]);
+          pos.sub(this.geometricCenter);
+
+          object.position.copy(pos);
+          object.name = "atom";
+
+          this.scene.add( object );
+          this.atomobjects.push(object);
+          this.atompos.push( pos );
+      }
+
+      //obtain combinations two by two of all the atoms
+      var combinations = getCombinations( this.atomobjects );
+      var a, b, length;
+      var material = new THREE.MeshLambertMaterial( { color: 0xffffff,
+                                                      blending: THREE.AdditiveBlending } );
+
+
+      for (i=0;i<combinations.length;i++) {
+          a = combinations[i][0].position;
+          b = combinations[i][1].position;
+
+          //if the separation is smaller than the sum of the bonding radius create a bond
+          length = a.distanceTo(b)
+          if (length < 2.2 ) {
+              this.bonds.push( [a,b,length] );
+
+              //get transformations
+              var bond = getBond(a,b);
+
+              var cylinderGeometry =
+                  new THREE.CylinderGeometry(this.bondRadius,this.bondRadius,length,
+                                             this.bondSegments,this.bondVertical,true);
+
+              //create cylinder mesh
+              var object = new THREE.Mesh(cylinderGeometry, material);
+
+              object.setRotationFromQuaternion( bond.quaternion );
+              object.position.copy( bond.midpoint )
+              object.name = "bond";
+
+              this.scene.add( object );
+              this.bondobjects.push( object );
+          }
+      }
+
+
   },
 
   addLights: function() {
@@ -120,9 +219,10 @@ ExcitonWf = {
       var scene = this.scene
       //just remove everything and then add the lights
       for (i=nobjects-1;i>=0;i--) {
-          scene.remove(scene.children[i]);
+          if (scene.children[i].name == "isosurface") {
+            scene.remove(scene.children[i]);
+          }
       }
-      this.addLights();
   },
 
   changeIsolevel: function(isolevel) {
@@ -296,6 +396,9 @@ ExcitonWf = {
 
       var colorMaterial =  new THREE.MeshLambertMaterial( {color: 0xffff00, side: THREE.DoubleSide, transparent: true, opacity: 0.5} );
       var mesh = new THREE.Mesh( geometry, colorMaterial );
+      mesh.name = "isosurface";
+
+      mesh.position.sub(this.geometricCenter);
       this.scene.add(mesh);
   },
 
@@ -363,6 +466,27 @@ AbsorptionSpectra = {
                                           marker: {radius: 2, symbol: "circle"},
                                           data: series });
   }
+}
+
+var vec_y = new THREE.Vector3( 0, 1, 0 );
+function getBond( point1, point2 ) {
+    var direction = new THREE.Vector3().subVectors(point2, point1);
+
+    return { quaternion: new THREE.Quaternion().setFromUnitVectors( vec_y, direction.clone().normalize() ),
+             midpoint: point1.clone().add( direction.multiplyScalar(0.5) ) };
+}
+
+/*
+Get combintations 2 by two based on:
+http://stackoverflow.com/questions/29169011/javascript-arrays-finding-the-number-of-combinations-of-2-elements
+*/
+
+getCombinations =  function(elements) {
+    combos = [];
+    for (var i = 0; i < elements.length; i++)
+        for (var j = i + 1; j < elements.length; j++)
+            combos.push([elements[i], elements[j]]);
+    return combos;
 }
 
 $.ajaxSetup({
