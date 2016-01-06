@@ -26,7 +26,7 @@ ExcitonWf = {
   //camera
   cameraViewAngle: 10,
   cameraNear: 0.1,
-  cameraFar: 2000,
+  cameraFar: 1000,
 
   init: function(container) {
       this.container = container;
@@ -38,23 +38,21 @@ ExcitonWf = {
 
       //camera
       this.camera = new THREE.PerspectiveCamera( this.cameraViewAngle, this.dimensions.ratio, this.cameraNear, this.cameraFar);
-      this.camera.position.set(0,0,300);
+      this.camera.position.set(0,0,100);
       this.camera.lookAt(this.scene.position);
-      this.scene.add(this.camera);
 
       //renderer
-      if ( Detector.webgl )
-          this.renderer = new THREE.WebGLRenderer( {antialias:true} );
-      else
-          this.renderer = new THREE.CanvasRenderer();
+      this.renderer = new THREE.WebGLRenderer( {antialias:true} );
       this.renderer.setSize(this.dimensions.width, this.dimensions.height);
       container0.appendChild( this.renderer.domElement );
 
       //controls
-      this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
-      this.controls.panSpeed = 0.3;
+      this.controls = new THREE.TrackballControls( this.camera, this.renderer.domElement );
       this.controls.rotateSpeed = 1.0;
       this.controls.zoomSpeed = 1.0;
+      this.controls.panSpeed = 0.3;
+      this.controls.noZoom = false;
+      this.controls.noPan = false;
       this.controls.staticMoving = true;
       this.controls.dynamicDampingFactor = 0.3;
 
@@ -296,7 +294,7 @@ ExcitonWf = {
       geometry.computeFaceNormals();
       geometry.computeVertexNormals();
 
-      var colorMaterial =  new THREE.MeshLambertMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
+      var colorMaterial =  new THREE.MeshLambertMaterial( {color: 0xffff00, side: THREE.DoubleSide, transparent: true, opacity: 0.5} );
       var mesh = new THREE.Mesh( geometry, colorMaterial );
       this.scene.add(mesh);
   },
