@@ -21,11 +21,20 @@ ExcitonWf = {
   sizey: 1,
   sizez: 1,
   cell: null,
+  isolevel: 0.05,
 
   //camera
   cameraViewAngle: 10,
   cameraNear: 0.1,
-  cameraFar: 2000,
+  cameraFar: 1000,
+
+  //balls
+  sphereRadius: 0.5,
+  sphereLat: 12,
+  sphereLon: 12,
+  bondRadius: 0.1,
+  bondSegments: 6,
+  bondVertical: 1,
 
   init: function(container) {
       this.container = container;
@@ -37,20 +46,23 @@ ExcitonWf = {
 
       //camera
       this.camera = new THREE.PerspectiveCamera( this.cameraViewAngle, this.dimensions.ratio, this.cameraNear, this.cameraFar);
-      this.camera.position.set(0,0,300);
+      this.camera.position.set(0,0,100);
       this.camera.lookAt(this.scene.position);
-      this.scene.add(this.camera);
 
       //renderer
-      if ( Detector.webgl )
-          this.renderer = new THREE.WebGLRenderer( {antialias:true} );
-      else
-          this.renderer = new THREE.CanvasRenderer();
+      this.renderer = new THREE.WebGLRenderer( {antialias:true} );
       this.renderer.setSize(this.dimensions.width, this.dimensions.height);
       container0.appendChild( this.renderer.domElement );
 
       //controls
-      this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
+      this.controls = new THREE.TrackballControls( this.camera, this.renderer.domElement );
+      this.controls.rotateSpeed = 1.0;
+      this.controls.zoomSpeed = 1.0;
+      this.controls.panSpeed = 0.3;
+      this.controls.noZoom = false;
+      this.controls.noPan = false;
+      this.controls.staticMoving = true;
+      this.controls.dynamicDampingFactor = 0.3;
 
       //stats
       this.stats = new Stats();
@@ -69,9 +81,9 @@ ExcitonWf = {
       for (var i = 0; i < this.sizex; i++)
       {
           // actual values
-          var x = i / (this.sizex - 1) - 0.5;
-          var y = j / (this.sizey - 1) - 0.5;
-          var z = k / (this.sizez - 1) - 0.5;
+          var x = i / (this.sizex-1);
+          var y = j / (this.sizey-1);
+          var z = k / (this.sizez-1);
 
           this.points.push( new THREE.Vector3(x*cell[0][0]+y*cell[1][0]+z*cell[2][0],
                                               x*cell[0][1]+y*cell[1][1]+z*cell[2][1],
@@ -79,16 +91,31 @@ ExcitonWf = {
       }
 
       this.addMarchingCubes();
+      this.getAtypes();
+      this.addStructure();
   },
 
   getData: function(filename) {
+    self = this;
     $.getJSON(filename, function(data) {
-      e.values = data["datagrid"];
-      e.sizex = data["nx"];
-      e.sizey = data["ny"];
-      e.sizez = data["nz"];
-      e.cell = data["cell"];
+      self.values = data["datagrid"];
+      self.sizex = data["nx"];
+      self.sizey = data["ny"];
+      self.sizez = data["nz"];
+      self.cell = data["lattice"];
+      self.atoms = data["atoms"];
+      self.natoms = self.atoms.length;
+      self.atom_numbers = data["atypes"];
     });
+
+    //get geometric center
+    this.geometricCenter = new THREE.Vector3(0,0,0);
+    for (i=0;i<this.atoms.length;i++) {
+        pos = new THREE.Vector3(this.atoms[i][1], this.atoms[i][2], this.atoms[i][3]);
+        this.geometricCenter.add(pos);
+    }
+    this.geometricCenter.multiplyScalar(1.0/this.atoms.length);
+
   },
 
   getContainerDimensions: function() {
@@ -101,6 +128,82 @@ ExcitonWf = {
       };
   },
 
+  getAtypes: function() {
+      this.materials = [];
+      for (i=0;i<this.atom_numbers.length;i++) {
+          var n = this.atom_numbers[i];
+          r = jmol_colors[n][0];
+          g = jmol_colors[n][1];
+          b = jmol_colors[n][2];
+
+          var material = new THREE.MeshLambertMaterial( { blending: THREE.AdditiveBlending } );
+          material.color.setRGB (r, g, b);
+
+          this.materials.push( material );
+      }
+  },
+
+  addStructure: function(phonon) {
+      this.atomobjects = [];
+      this.bondobjects = [];
+      this.atompos = [];
+      this.bonds = [];
+
+      var sphereGeometry = new THREE.SphereGeometry(this.sphereRadius,this.sphereLat,this.sphereLon);
+
+      //add a ball for each atom
+      for (i=0; i<this.atoms.length;i++) {
+
+          object = new THREE.Mesh( sphereGeometry, this.materials[this.atoms[i][0]] );
+          pos = new THREE.Vector3(this.atoms[i][1], this.atoms[i][2], this.atoms[i][3]);
+          pos.sub(this.geometricCenter);
+
+          object.position.copy(pos);
+          object.name = "atom";
+
+          this.scene.add( object );
+          this.atomobjects.push(object);
+          this.atompos.push( pos );
+      }
+
+      //obtain combinations two by two of all the atoms
+      var combinations = getCombinations( this.atomobjects );
+      var a, b, length;
+      var material = new THREE.MeshLambertMaterial( { color: 0xffffff,
+                                                      blending: THREE.AdditiveBlending } );
+
+
+      for (i=0;i<combinations.length;i++) {
+          a = combinations[i][0].position;
+          b = combinations[i][1].position;
+
+          //if the separation is smaller than the sum of the bonding radius create a bond
+          length = a.distanceTo(b)
+          if (length < 2.2 ) {
+              this.bonds.push( [a,b,length] );
+
+              //get transformations
+              var bond = getBond(a,b);
+
+              var cylinderGeometry =
+                  new THREE.CylinderGeometry(this.bondRadius,this.bondRadius,length,
+                                             this.bondSegments,this.bondVertical,true);
+
+              //create cylinder mesh
+              var object = new THREE.Mesh(cylinderGeometry, material);
+
+              object.setRotationFromQuaternion( bond.quaternion );
+              object.position.copy( bond.midpoint )
+              object.name = "bond";
+
+              this.scene.add( object );
+              this.bondobjects.push( object );
+          }
+      }
+
+
+  },
+
   addLights: function() {
       var light;
       light = new THREE.DirectionalLight( 0xffffff );
@@ -109,6 +212,24 @@ ExcitonWf = {
       this.scene.add( light );
       light = new THREE.AmbientLight( 0x222222 );
       this.scene.add( light );
+  },
+
+  removeStructure: function() {
+      var nobjects = this.scene.children.length;
+      var scene = this.scene
+      //just remove everything and then add the lights
+      for (i=nobjects-1;i>=0;i--) {
+          if (scene.children[i].name == "isosurface") {
+            scene.remove(scene.children[i]);
+          }
+      }
+  },
+
+  changeIsolevel: function(isolevel) {
+      console.log(isolevel);
+      this.isolevel = isolevel;
+      this.removeStructure();
+      this.addMarchingCubes();
   },
 
   addMarchingCubes: function() {
@@ -156,7 +277,7 @@ ExcitonWf = {
           // place a "1" in bit positions corresponding to vertices whose
           //   isovalue is less than given constant.
 
-          var isolevel = 0.05;
+          var isolevel = this.isolevel;
 
           var cubeindex = 0;
           if ( value0 < isolevel ) cubeindex |= 1;
@@ -273,8 +394,11 @@ ExcitonWf = {
       geometry.computeFaceNormals();
       geometry.computeVertexNormals();
 
-      var colorMaterial =  new THREE.MeshLambertMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
+      var colorMaterial =  new THREE.MeshLambertMaterial( {color: 0xffff00, side: THREE.DoubleSide, transparent: true, opacity: 0.5} );
       var mesh = new THREE.Mesh( geometry, colorMaterial );
+      mesh.name = "isosurface";
+
+      mesh.position.sub(this.geometricCenter);
       this.scene.add(mesh);
   },
 
@@ -294,6 +418,77 @@ ExcitonWf = {
   }
 }
 
+AbsorptionSpectra = {
+  HighchartsOptions: {
+      chart: { type: 'line'},
+      title: { text: 'Absorption Spectra' },
+      xAxis: { title: { text: 'Energy' },
+               plotLines: [] },
+      yAxis: { min: 0,
+               title: { text: 'Intensity (arb. units)' },
+               plotLines: [ {value: 0, color: '#808080' } ] },
+      tooltip: { valueSuffix: 'cm-1' },
+      plotOptions: {
+          line: {
+              animation: false
+          },
+          series: {
+              cursor: 'pointer',
+              point: { events: {
+                   click: function(event) {
+                              console.log("not implemented yet");
+                                          }
+                  }
+              }
+          }
+      },
+      legend: { enabled: false },
+      series: []
+  },
+
+  init: function(container) {
+    container.highcharts(this.HighchartsOptions);
+  },
+
+  getData: function(filename) {
+      var values;
+      $.getJSON(filename, function(data) {
+        values = data["data"]["bse/o-yambo.eps_q1_diago_bse"];
+      });
+      var x, series = [];
+      for (i=0;i<values.length;i++) {
+        x = values[i];
+        series.push(x[1]);
+      }
+
+      this.HighchartsOptions.series.push({name:  "spectra",
+                                          color: "#0066FF",
+                                          marker: {radius: 2, symbol: "circle"},
+                                          data: series });
+  }
+}
+
+var vec_y = new THREE.Vector3( 0, 1, 0 );
+function getBond( point1, point2 ) {
+    var direction = new THREE.Vector3().subVectors(point2, point1);
+
+    return { quaternion: new THREE.Quaternion().setFromUnitVectors( vec_y, direction.clone().normalize() ),
+             midpoint: point1.clone().add( direction.multiplyScalar(0.5) ) };
+}
+
+/*
+Get combintations 2 by two based on:
+http://stackoverflow.com/questions/29169011/javascript-arrays-finding-the-number-of-combinations-of-2-elements
+*/
+
+getCombinations =  function(elements) {
+    combos = [];
+    for (var i = 0; i < elements.length; i++)
+        for (var j = i + 1; j < elements.length; j++)
+            combos.push([elements[i], elements[j]]);
+    return combos;
+}
+
 $.ajaxSetup({
     async: false
 });
@@ -301,6 +496,10 @@ $.ajaxSetup({
 $(document).ready(function(){
   e = ExcitonWf;
   e.getData('datagrid.json');
-  e.init($('#excitonwf'))
+  e.init($('#excitonwf'));
   e.animate();
+
+  a = AbsorptionSpectra;
+  a.getData('bse.json');
+  a.init($('#highcharts'));
 });

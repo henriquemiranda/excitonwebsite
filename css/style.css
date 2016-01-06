@@ -1,11 +1,18 @@
-body
-{
-	font-family: Monospace;
-	font-weight: bold;
-	background-color: #ffffff;
-	margin: 0px;
-	height: 100%;
-	width: 100%;
+html, body {
+    font-family: Arial,helvetica,sans-serif;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+
+h3 {
+  font-size: 1em;
+  margin-top: 0.5em;
+  margin-bottom: 0.3em;
+}
+
+.input-isolevel {
+	width: 90%;
 }
 
 .container {
@@ -21,16 +28,35 @@ body
 }
 
 .flex-excitonwf {
-	flex: 1;
+	flex: 2;
+	width: 100%;
+	height: 100%;
 	position: relative;
 }
 
 .flex-highcharts {
-	flex: 1
+	flex: 2;
+	width: 100%;
+	height: 100%;
+	position: relative;
 }
+
+.flex-input {
+	flex: 1;
+	width: 100%;
+	height: 100%;
+	position: relative;
+}
+
 
 #excitonwf {
 	height: 100%;
 	width: 100%;
 	position: absolute;
+}
+
+#highcharts {
+    height: 100%;
+    width: 100%;
+	  position: absolute;
 }
