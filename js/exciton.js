@@ -27,6 +27,7 @@ ExcitonWf = {
   cameraViewAngle: 10,
   cameraNear: 0.1,
   cameraFar: 1000,
+  cameraDistance: 200,
 
   //balls
   sphereRadius: 0.5,
@@ -46,13 +47,18 @@ ExcitonWf = {
 
       //camera
       this.camera = new THREE.PerspectiveCamera( this.cameraViewAngle, this.dimensions.ratio, this.cameraNear, this.cameraFar);
-      this.camera.position.set(0,0,100);
+      this.camera.position.set(0,0,this.cameraDistance);
       this.camera.lookAt(this.scene.position);
 
       //renderer
       this.renderer = new THREE.WebGLRenderer( {antialias:true} );
-      this.renderer.setSize(this.dimensions.width, this.dimensions.height);
+      this.renderer.setClearColor( 0xffffff );
+      this.renderer.setPixelRatio( window.devicePixelRatio );
+      this.renderer.shadowMap.enabled = false;
+      this.renderer.setSize( this.dimensions.width , this.dimensions.height, false );
       container0.appendChild( this.renderer.domElement );
+
+      window.addEventListener( 'resize', this.onWindowResize.bind(this), false );
 
       //controls
       this.controls = new THREE.TrackballControls( this.camera, this.renderer.domElement );
@@ -71,42 +77,22 @@ ExcitonWf = {
       this.stats.domElement.style.zIndex = 100;
       container0.appendChild( this.stats.domElement );
 
-      //lights
-      this.addLights();
-
-      // Generate a list of 3D points and values at those points
-      var cell = this.cell;
-      for (var k = 0; k < this.sizez; k++)
-      for (var j = 0; j < this.sizey; j++)
-      for (var i = 0; i < this.sizex; i++)
-      {
-          // actual values
-          var x = i / (this.sizex-1);
-          var y = j / (this.sizey-1);
-          var z = k / (this.sizez-1);
-
-          this.points.push( new THREE.Vector3(x*cell[0][0]+y*cell[1][0]+z*cell[2][0],
-                                              x*cell[0][1]+y*cell[1][1]+z*cell[2][1],
-                                              x*cell[0][2]+y*cell[1][2]+z*cell[2][2]));
-      }
-
-      this.addMarchingCubes();
-      this.getAtypes();
-      this.addStructure();
+      this.updateStructure();
   },
 
-  getData: function(filename) {
-    self = this;
-    $.getJSON(filename, function(data) {
-      self.values = data["datagrid"];
-      self.sizex = data["nx"];
-      self.sizey = data["ny"];
-      self.sizez = data["nz"];
-      self.cell = data["lattice"];
-      self.atoms = data["atoms"];
-      self.natoms = self.atoms.length;
-      self.atom_numbers = data["atypes"];
-    });
+  getData: function(absorption) {
+    this.exciton_index = a.exciton_index;
+    this.excitons = absorption.excitons;
+    this.values = absorption.excitons[this.exciton_index]["datagrid"];
+    this.sizex  = absorption.sizex;
+    this.sizey  = absorption.sizey;
+    this.sizez  = absorption.sizez;
+    this.cell   = absorption.cell;
+    this.nndist = absorption.nndist;
+    console.log(this.nndist);
+    this.atoms  = absorption.atoms;
+    this.natoms = absorption.atoms.length;
+    this.atom_numbers = absorption.atom_numbers;
 
     //get geometric center
     this.geometricCenter = new THREE.Vector3(0,0,0);
@@ -179,7 +165,7 @@ ExcitonWf = {
 
           //if the separation is smaller than the sum of the bonding radius create a bond
           length = a.distanceTo(b)
-          if (length < 2.2 ) {
+          if (length < this.nndist ) {
               this.bonds.push( [a,b,length] );
 
               //get transformations
@@ -219,17 +205,55 @@ ExcitonWf = {
       var scene = this.scene
       //just remove everything and then add the lights
       for (i=nobjects-1;i>=0;i--) {
-          if (scene.children[i].name == "isosurface") {
-            scene.remove(scene.children[i]);
-          }
+          scene.remove(scene.children[i]);
       }
   },
 
   changeIsolevel: function(isolevel) {
-      console.log(isolevel);
       this.isolevel = isolevel;
-      this.removeStructure();
-      this.addMarchingCubes();
+      this.updateStructure();
+  },
+
+  setCameraDirection: function(direction) {
+      if (direction == 'x') {
+          this.camera.position.set( this.cameraDistance, 0, 0);
+          this.camera.up.set( 0, 0, 1 );
+      }
+      if (direction == 'y') {
+          this.camera.position.set( 0, this.cameraDistance, 0);
+          this.camera.up.set( 0, 0, 1 );
+      }
+      if (direction == 'z') {
+          this.camera.position.set( 0, 0, this.cameraDistance);
+          this.camera.up.set( 0, 1, 0 );
+      }
+  },
+
+  updateStructure: function() {
+    this.values = this.excitons[this.exciton_index]["datagrid"];
+    this.removeStructure();
+
+    // Generate a list of 3D points and values at those points
+    var cell = this.cell;
+    this.points = [];
+    for (var k = 0; k < this.sizez; k++)
+    for (var j = 0; j < this.sizey; j++)
+    for (var i = 0; i < this.sizex; i++)
+    {
+        // actual values
+        var x = i / (this.sizex-1);
+        var y = j / (this.sizey-1);
+        var z = k / (this.sizez-1);
+
+        this.points.push( new THREE.Vector3(x*cell[0][0]+y*cell[1][0]+z*cell[2][0],
+                                            x*cell[0][1]+y*cell[1][1]+z*cell[2][1],
+                                            x*cell[0][2]+y*cell[1][2]+z*cell[2][2]));
+    }
+
+    this.addLights();
+    this.addMarchingCubes();
+    this.getAtypes();
+    this.addStructure();
   },
 
   addMarchingCubes: function() {
@@ -402,6 +426,18 @@ ExcitonWf = {
       this.scene.add(mesh);
   },
 
+  onWindowResize: function() {
+      this.dimensions = this.getContainerDimensions();
+
+      this.camera.aspect = this.dimensions.ratio;
+      this.camera.updateProjectionMatrix();
+
+      this.renderer.setSize( this.dimensions.width, this.dimensions.height, false );
+      this.controls.handleResize();
+      this.render();
+
+  },
+
   animate: function() {
       requestAnimationFrame( this.animate.bind(this) );
       this.render();
@@ -419,6 +455,7 @@ ExcitonWf = {
 }
 
 AbsorptionSpectra = {
+  exciton_index: 0,
   HighchartsOptions: {
       chart: { type: 'line'},
       title: { text: 'Absorption Spectra' },
@@ -436,7 +473,21 @@ AbsorptionSpectra = {
               cursor: 'pointer',
               point: { events: {
                    click: function(event) {
-                              console.log("not implemented yet");
+                              var min = 1e9, distance;
+
+                              //check which exciton is closer in energy
+                              for (i=0;i<e.excitons.length;i++) {
+                                e.excitons[i]["index"];
+                                energy = e.excitons[i]["energy"];
+                                distance = Math.abs(energy-this.x)
+                                if (distance < min ) {
+                                  min = distance;
+                                  e.exciton_index = i;
+                                }
+                              }
+
+                              //plot it
+                              e.updateStructure();
                                           }
                   }
               }
@@ -451,20 +502,48 @@ AbsorptionSpectra = {
   },
 
   getData: function(filename) {
-      var values;
+      self = this;
       $.getJSON(filename, function(data) {
-        values = data["data"]["bse/o-yambo.eps_q1_diago_bse"];
+        self.excitons = data["excitons"];
+        self.eps = data["eps"];
+        self.eel = data["eel"];
+        self.sizex = data["nx"];
+        self.sizey = data["ny"];
+        self.sizez = data["nz"];
+        self.nndist = data["nndist"] + 0.01; //due to numeric precision
+        self.cell = data["lattice"];
+        self.atoms = data["atoms"];
+        self.natoms = self.atoms.length;
+        self.atom_numbers = data["atypes"];
       });
       var x, series = [];
-      for (i=0;i<values.length;i++) {
-        x = values[i];
-        series.push(x[1]);
+
+      for (i=0;i<self.eps.length;i++) {
+        x = self.eps[i];
+        series.push([x[0],x[1]]);
       }
 
+      this.HighchartsOptions.series = [];
       this.HighchartsOptions.series.push({name:  "spectra",
                                           color: "#0066FF",
                                           marker: {radius: 2, symbol: "circle"},
                                           data: series });
+
+      exciton_lines = []
+      plotlines = this.HighchartsOptions.xAxis.plotLines;
+      for (i=0;i<self.excitons.length;i++) {
+        exciton_lines.push({ value: self.excitons[i]["energy"],
+                             color: 'gray',
+                             width: 4,
+                             name: i,
+                             events: { click: function(event)
+                                        { e.exciton_index = this.options.name;
+                                          e.updateStructure()
+                                        }
+                                     }
+                           });
+      }
+      this.HighchartsOptions.xAxis.plotLines = exciton_lines;
   }
 }
 
@@ -481,7 +560,7 @@ Get combintations 2 by two based on:
 http://stackoverflow.com/questions/29169011/javascript-arrays-finding-the-number-of-combinations-of-2-elements
 */
 
-getCombinations =  function(elements) {
+function getCombinations(elements) {
     combos = [];
     for (var i = 0; i < elements.length; i++)
         for (var j = i + 1; j < elements.length; j++)
@@ -493,13 +572,22 @@ $.ajaxSetup({
     async: false
 });
 
+function updateAll() {
+  a.getData(folder+'/absorptionspectra.json');
+  a.init($('#highcharts'));
+  e.getData(a);
+  e.updateStructure();
+}
+
 $(document).ready(function(){
-  e = ExcitonWf;
-  e.getData('datagrid.json');
-  e.init($('#excitonwf'));
-  e.animate();
+  folder = "bn";
 
   a = AbsorptionSpectra;
-  a.getData('bse.json');
+  a.getData(folder+'/absorptionspectra.json');
   a.init($('#highcharts'));
+
+  e = ExcitonWf;
+  e.getData(a);
+  e.init($('#excitonwf'));
+  e.animate();
 });
