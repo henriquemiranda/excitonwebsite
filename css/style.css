@@ -11,6 +11,11 @@ h3 {
   margin-bottom: 0.3em;
 }
 
+canvas {
+    width: 100%;
+    height: 100%
+}
+
 .input-isolevel {
 	width: 90%;
 }
@@ -19,6 +24,28 @@ h3 {
 	width: 100%;
 	height: 100%;
 	position: absolute;
+}
+
+.disclaimer p {
+    color: red;
+}
+
+.materials {
+    list-style: none;
+    overflow: auto;
+    margin: 0;
+    padding-left: 0;
+}
+
+.materials li a {
+    text-decoration: none;
+    margin-bottom: 0.2em;
+    display: block;
+    transition: font-size 0.3s ease, background-color 0.3s ease;
+}
+
+.materials li a:hover {
+    background: deepskyblue;
 }
 
 .flex-container {
