@@ -5,7 +5,7 @@ Visualize excitonic wavefunctions.
 
 This project aims to create an interactive website where the user can visualize different excitonic wavefunctions.
 
-The exciton is a bound state of and exciton and an electron.
+The exciton is a bound state of and hole and an electron.
 We use yambo ypp to generate a representation of electron density when the hole is fixed.
 This is done for the excitons with the highest intensity.
 The user can click in the absorption spectra and visualize the electron density that corresponds to that particular state.

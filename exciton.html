@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>TSS Physics - Visualization of excitons</title>
+    <meta charset="utf-8">
+    <link rel=stylesheet href="css/style.css"/>
+
+    <script src="js/three.min.js"></script>
+    <script src="js/Detector.js"></script>
+    <script src="js/Stats.js"></script>
+    <script src="js/TrackballControls.js"></script>
+    <script src="js/MarchingCubesData.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/highcharts.js"></script>
+    <script src="js/atomic_data.js"></script>
+    <script src="js/exciton.js"></script>
+
+</head>
+<body>
+    <div class="container">
+		<ul class="navigation">
+			    <li><a href="index.html">Home</a></li>
+			    <li><a href="exciton.html">Excitons</a></li>
+		</ul>
+		<div class="material-name"><h1 id="t1">Boron Nitride</h1></div>
+    <div class="flex-container">
+      <div class="flex-input">
+        <div>
+          <h3>Material:</h3>
+          <div>
+            <ul id="mat" class="materials">
+              <li><a href="#" onclick="folder='bn';   updateAll(); $('#t1').html('Boron Nitride')">Boron Nitride</a></li>
+              <li><a href="#" onclick="folder='mos2'; updateAll(); $('#t1').html('MoS<sub>2</sub>')">MoS<sub>2</sub></a></li>
+              <li><a href="#" onclick="folder='mote2';updateAll(); $('#t1').html('MoTe<sub>2</sub>')">MoTe<sub>2</sub></a></li>
+            </ul>
+          </div>
+          <h3>Isolevel:</h3>
+          <form>
+            <input class="input-isolevel" type="range" name="points" step ="0.001" value="0.02" min="0.001" max="0.2" onchange="e.changeIsolevel(this.value)">
+          </form>
+          <div>
+          <h3>Camera:</h3>
+              <button type="button" onclick="e.setCameraDirection('x')">x</button>
+              <button type="button" onclick="e.setCameraDirection('y')">y</button>
+              <button type="button" onclick="e.setCameraDirection('z')">z</button>
+          </div>
+          <div class="disclaimer">
+            <h3>Disclaimer:</h3>
+            <p>Some calculations shown here are not numerically converged!</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex-excitonwf"><div id="excitonwf"></div></div>
+      <div class="flex-highcharts"><div id="highcharts"></div></div>
+    </div>
+</body>
+</html>
