@@ -5,10 +5,21 @@ html, body {
     width: 100%;
 }
 
+h1 {
+  font-size: 2em;
+  margin: 0.1em;
+}
+
 h3 {
   font-size: 1em;
   margin-top: 0.5em;
   margin-bottom: 0.3em;
+}
+
+section {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 600px;
 }
 
 canvas {
@@ -16,14 +27,20 @@ canvas {
     height: 100%
 }
 
-.input-isolevel {
-	width: 90%;
+.container  {
+    height: 100%;
+    width: 100%;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    justify-content: flex-start;
+
 }
 
-.container {
-	width: 100%;
-	height: 100%;
-	position: absolute;
+.input-isolevel {
+	width: 90%;
 }
 
 .disclaimer p {
@@ -45,34 +62,67 @@ canvas {
 }
 
 .materials li a:hover {
-    background: deepskyblue;
+    background: lightseagreen;
+}
+
+.material-name {
+    vertical-align: middle;
+    text-align: center;
+    margin: 0;
+}
+
+.navigation {
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: row;
+    flex-direction: row;
+    justify-content: flex-start;
+
+    list-style: none;
+    margin: 0;
+
+    background: lightseagreen;
+    padding-left: 0;
+}
+
+.navigation a {
+  text-decoration: none;
+  display: block;
+  padding: 0.5em;
+  color: white;
 }
 
 .flex-container {
-	width: 100%;
-	height: 100%;
-	display: flex;
+    width: 100%;
+  	height: 100%;
+    position: relative;
+    padding: 0;
+    margin: 0;
+    justify-content: space-around;
+
+    flex: 1;
+    display: flex;
+    -webkit-flex-flow: row wrap;
+    flex-flow: row wrap;
+    align-items: stretch;
 }
 
 .flex-excitonwf {
 	flex: 2;
 	width: 100%;
-	height: 100%;
 	position: relative;
 }
 
 .flex-highcharts {
 	flex: 2;
 	width: 100%;
-	height: 100%;
 	position: relative;
 }
 
 .flex-input {
 	flex: 1;
 	width: 100%;
-	height: 100%;
-	position: relative;
 }
 
 

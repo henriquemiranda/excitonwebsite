@@ -1,51 +1,83 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-    <title>TSS Physics - Visualization of excitons</title>
-    <meta charset="utf-8">
-    <link rel=stylesheet href="css/style.css"/>
 
-    <script src="js/three.min.js"></script>
-    <script src="js/Detector.js"></script>
-    <script src="js/Stats.js"></script>
-    <script src="js/TrackballControls.js"></script>
-    <script src="js/MarchingCubesData.js"></script>
-    <script src="js/jquery.min.js"></script>
-    <script src="js/highcharts.js"></script>
-    <script src="js/atomic_data.js"></script>
-    <script src="js/exciton.js"></script>
+	<title>TSS Physics - Home</title>
+	<!-- META TAGS about the Website-->
+	<meta name="author" content="Henrique Miranda">
+	<meta name="copyright" content="2016 Theoretical Solid-State Physics Group of University of Luxembourg">
+	<meta http-equiv="content-language" content="en">
+	<meta name="title" content="Theoretical Solid-State Physics">
+	<meta name="description" content="Interactive website for the visualization of excitons.">
+	<meta name="keywords" content="University of Luxembourg, theoretical solid-state physics">
+	<meta name="date" content="2016-01-05">
+
+	<!-- CSS Design-->
+	<link href="css/style.css" type="text/css" rel="stylesheet">
+
+	<!-- Meta tags symbols -->
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
 </head>
+
 <body>
-    <div class="container">
-    <div class="flex-container">
-      <div class="flex-input">
-        <div>
-          <h3>Material:</h3>
-          <div>
-            <ul id="mat" class="materials">
-              <li><a href="#" onclick="folder='bn';  updateAll();">Boron Nitride</a></li>
-              <li><a href="#" onclick="folder='mos2';updateAll();">Mo<sub>2</sub></a></li>
-            </ul>
-          </div>
-          <h3>Isolevel:</h3>
-          <form>
-            <input class="input-isolevel" type="range" name="points" step ="0.001" value="0.02" min="0.001" max="0.2" onchange="e.changeIsolevel(this.value)">
-          </form>
-          <div>
-          <h3>Camera:</h3>
-              <button type="button" onclick="e.setCameraDirection('x')">x</button>
-              <button type="button" onclick="e.setCameraDirection('y')">y</button>
-              <button type="button" onclick="e.setCameraDirection('z')">z</button>
-          </div>
-          <div class="disclaimer">
-            <h3>Disclaimer:</h3>
-            <p>The calculations shown here are not numerically converged!</p>
-          </div>
-        </div>
-      </div>
-      <div class="flex-excitonwf"><div id="excitonwf"></div></div>
-      <div class="flex-highcharts"><div id="highcharts"></div></div>
-    </div>
+
+<header>
+	<ul class="navigation">
+		<li><a href="index.html">Home</a></font></li>
+		<li><a href="exciton.html">Excitons</a></font></li>
+	</ul>
+</header>
+
+<section>
+<h2>What is this?</h2>
+<p>
+Welcome to the project of excitons visualization provided by the Theoretical
+Solid State Physics group of the University of Luxembourg.
+</p>
+
+<p>
+An exciton is a bound state of and hole and an electron. We use yambo ypp to
+generate a representation of electron density when the hole is fixed. This is
+done for the excitons with the highest intensity. The user can click in the
+absorption spectra and visualize the electron density that corresponds to that
+particular state.
+</p>
+
+<h2>Authors:</h2>
+<p>
+Henrique Miranda
+</p>
+
+<h2>Bugs and feature requests:</h2>
+<p>
+The website is still under development but feedback and bug fixes are welcome!
+You can request features and report bugs here:
+<a href="https://github.com/henriquemiranda/excitonwebsite/issues">https://github.com/henriquemiranda/excitonwebsite/issues</a>
+</p>
+
+<h2>Links:</h2>
+<p>
+    <h3>For more information about us and our work visit:</h3>
+    <a href="http://wwwen.uni.lu/recherche/fstc/physics_and_materials_science_research_unit/research_areas/theoretical_solid_state_physics">http://wwwen.uni.lu/</a>
+</p>
+
+<p>
+    <h3>My personal webpage:</h3>
+    <a href="http://henriquemiranda.github.io">http://henriquemiranda.github.io</a>
+</p>
+
+<p>
+    <h3>My github page:</h3>
+    <a href="https://github.com/henriquemiranda">https://github.com/henriquemiranda</a>
+</p>
+
+<p>
+    <h3>Contact me:</h3>
+    miranda.henrique at gmail.com
+</p>
+</section>
+
 </body>
+
 </html>
