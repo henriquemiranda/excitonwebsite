@@ -2,22 +2,22 @@
 <html>
 <head>
 
-	<title>TSS Physics - Home</title>
-	<!-- META TAGS about the Website-->
-	<meta name="author" content="Henrique Miranda">
-	<meta name="copyright" content="2016 Theoretical Solid-State Physics Group of University of Luxembourg">
-	<meta http-equiv="content-language" content="en">
-	<meta name="title" content="Theoretical Solid-State Physics">
-	<meta name="description" content="Interactive website for the visualization of excitons.">
-	<meta name="keywords" content="University of Luxembourg, theoretical solid-state physics">
-	<meta name="date" content="2016-01-05">
+		<title>TSS Physics - Home</title>
+		<!-- META TAGS about the Website-->
+		<meta name="author" content="Henrique Miranda, Raoul Weber">
+		<meta name="copyright" content="2015 Theoretical Solid-State Physics Group of University of Luxembourg">
+		<meta http-equiv="content-language" content="en">
+		<meta name="title" content="Theoretical Solid-State Physics">
+		<meta name="description" content="Interactive website for the visualization of excitons.">
+		<meta name="keywords" content="University of Luxembourg, theoretical solid-state physics, excitons, optical">
+		<meta name="date" content="2014-07-25">
 
-	<!-- CSS Design-->
-	<link href="css/style.css" type="text/css" rel="stylesheet">
+		<!-- CSS Design-->
+		<link href="css/style.css" type="text/css" rel="stylesheet">
 
-	<!-- Meta tags symbols -->
-	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-
+		<!-- Meta tags symbols -->
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		
 </head>
 
 <body>
@@ -25,57 +25,74 @@
 <header>
 	<ul class="navigation">
 		<li><a href="index.html">Home</a></font></li>
-		<li><a href="exciton.html">Excitons</a></font></li>
+		<li><a href="exciton.html">Phonons</a></font></li>
 	</ul>
 </header>
 
 <section>
-<h2>What is this?</h2>
-<p>
-Welcome to the project of excitons visualization provided by the Theoretical
-Solid State Physics group of the University of Luxembourg.
-</p>
+<h1 id="exciton-website">Exciton website</h1>
+<p>Visualize excitonic wavefunctions.</p>
+<p>This project aims to create an interactive website where the user can visualize different excitonic wavefunctions. The exciton is a bound state of and electron and an hole interacting via a Coulomb force. We use <code>yambo</code> to calculate these excitonic states using the Bethe-Salpeter equation and <code>ypp</code> (part of yambo) to generate a representation of electron density when the hole is fixed. This is done for the excitons with the highest intensity. The user can click in the absorption spectra and visualize the electron density that corresponds to that particular state.</p>
+<h1 id="how-to-use">How to use?</h1>
+<p>This website allows you to visualize your own calculations. For that you need to have a <code>.json</code> file with the information to display. Currently this files can be generated using yambopy:</p>
+<p><a href="https://github.com/henriquemiranda/yambopy">https://github.com/henriquemiranda/yambopy</a></p>
+<p>running your BSE calculation diagonalizing the excitonic hamiltonian. Then you can generate this files using a script similar to the one present in the analyse part of the bse_bn.py script provided in the tutorial. We reproduce the code here:</p>
+<pre class="sourceCode python"><code class="sourceCode python">    <span class="co">#read the yambo output files from the bse folder</span>
+    y = YamboOut(<span class="st">&#39;bse&#39;</span>)
+    y.pack()
 
-<p>
-An exciton is a bound state of and hole and an electron. We use yambo ypp to
-generate a representation of electron density when the hole is fixed. This is
-done for the excitons with the highest intensity. The user can click in the
-absorption spectra and visualize the electron density that corresponds to that
-particular state.
-</p>
+    <span class="co">#get the absorption spectra in the folder &#39;bse&#39;</span>
+    a = YamboBSEAbsorptionSpectra(<span class="st">&#39;yambo&#39;</span>,path=<span class="st">&#39;bse&#39;</span>)
+    
+    <span class="co"># first we get the energies of teh ecitonic states:</span>
+    <span class="co"># min_intensity=0.0005  # minimum intensity of the excitons to represent</span>
+    <span class="co"># max_energy=7          # maximum energy of the excitons to represent</span>
+    <span class="co"># Degen_Step=0.01       # merge excitonic states whose energy</span>
+                            <span class="co"># difference in energy is smaller than</span>
 
-<h2>Authors:</h2>
-<p>
-Henrique Miranda
-</p>
+    excitons = a.get_excitons(min_intensity=<span class="fl">0.0005</span>,max_energy=<span class="dv">7</span>,
+                              Degen_Step=<span class="fl">0.01</span>)
 
-<h2>Bugs and feature requests:</h2>
-<p>
-The website is still under development but feedback and bug fixes are welcome!
-You can request features and report bugs here:
-<a href="https://github.com/henriquemiranda/excitonwebsite/issues">https://github.com/henriquemiranda/excitonwebsite/issues</a>
-</p>
+    <span class="dt">print</span>( <span class="st">&quot;nexcitons: </span><span class="ot">%d</span><span class="st">&quot;</span>%<span class="dt">len</span>(excitons) )
+    <span class="dt">print</span>( <span class="st">&quot;excitons:&quot;</span> )
+    <span class="dt">print</span>( excitons )
 
-<h2>Links:</h2>
-<p>
-    <h3>For more information about us and our work visit:</h3>
-    <a href="http://wwwen.uni.lu/recherche/fstc/physics_and_materials_science_research_unit/research_areas/theoretical_solid_state_physics">http://wwwen.uni.lu/</a>
-</p>
+    <span class="co"># read the wavefunctions</span>
+    <span class="co"># Cells=[13,13,1]   #number of cell repetitions</span>
+    <span class="co"># Hole=[0,0,6+.5]   #position of the hole in cartesian coordinates</span>
+    <span class="co"># FFTGvecs=10       #number of FFT vecs to use, larger makes the</span>
+    <span class="co">#                   #image smoother, but takes more time to plot</span>
+    a.get_wavefunctions(Degen_Step=<span class="fl">0.01</span>,repx=<span class="dt">range</span>(-<span class="dv">1</span>,<span class="dv">2</span>),
+                        repy=<span class="dt">range</span>(-<span class="dv">1</span>,<span class="dv">2</span>),repz=<span class="dt">range</span>(<span class="dv">1</span>),
+                        Cells=[<span class="dv">13</span>,<span class="dv">13</span>,<span class="dv">1</span>],Hole=[<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">6</span><span class="fl">+.5</span>],
+                        FFTGvecs=<span class="dv">10</span>,wf=<span class="ot">True</span>)
+    
+    <span class="co">#write the file</span>
+    a.write_json() </code></pre>
+<h1 id="contribute">Contribute</h1>
+<p>The project is still under development, suggestions and bugfixes are welcome!</p>
+<p>If you would like to see some data added here please contact me.</p>
+<p>You can leave your suggestions and feature requests here: <a href="https://github.com/henriquemiranda/excitonwebsite/issues">https://github.com/henriquemiranda/excitonwebsite/issues</a></p>
+<h1 id="author">Author</h1>
+<p>Henrique Miranda</p>
+<p>My personal webpage: <a href="http://henriquemiranda.github.io">http://henriquemiranda.github.io</a></p>
+<p>My github page: <a href="https://github.com/henriquemiranda">https://github.com/henriquemiranda</a></p>
+<p>Contact me: miranda.henrique at gmail.com</p>
+<h1 id="aknowledgments-funding">Aknowledgments &amp; Funding</h1>
+<p><a href="http://wwwen.uni.lu/recherche/fstc/physics_and_materials_science_research_unit/research_areas/theoretical_solid_state_physics">Ludger Wirtz</a> for the original idea and important scientific advices.</p>
+<p>Fonds National de la Recherche Luxembourg (2013-present): <a href="http://www.fnr.lu/">http://www.fnr.lu/</a></p>
+<p><img src="figures/fnr.jpg" style="width:60%;"></p>
+<p>University of Luxembourg (2013-present): <a href="http://wwwen.uni.lu/">http://wwwen.uni.lu/</a></p>
+<p><img src="figures/unilu.png" style="width:20%;"></p>
+<h1 id="software-used-for-this-project">Software used for this project</h1>
+<ul>
+<li>The WebGL visualization is made using <code>Three.js</code>: <a href="http://threejs.org/">http://threejs.org/</a></li>
+<li>The absorption spectra is made using <code>highcharts.js</code>: <a href="http://www.highcharts.com/">http://www.highcharts.com/</a></li>
+<li><p>For plot the isosurface I used the marching cubes algorithm as implemented in: <a href="https://stemkoski.github.io/Three.js/">https://stemkoski.github.io/Three.js/</a></p></li>
+<li><code>Quantum Espresso</code>: <a href="http://www.quantum-espresso.org/">http://www.quantum-espresso.org/</a></li>
+<li><p><code>Yambo</code>: <a href="http://www.yambo-code.org/">http://www.yambo-code.org/</a></p></li>
+</ul>
 
-<p>
-    <h3>My personal webpage:</h3>
-    <a href="http://henriquemiranda.github.io">http://henriquemiranda.github.io</a>
-</p>
-
-<p>
-    <h3>My github page:</h3>
-    <a href="https://github.com/henriquemiranda">https://github.com/henriquemiranda</a>
-</p>
-
-<p>
-    <h3>Contact me:</h3>
-    miranda.henrique at gmail.com
-</p>
 </section>
 
 </body>

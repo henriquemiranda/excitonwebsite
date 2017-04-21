@@ -36,7 +36,7 @@
           </div>
           <h3>Isolevel:</h3>
           <form>
-            <input class="input-isolevel" type="range" name="points" step ="0.001" value="0.02" min="0.001" max="0.2" onchange="e.changeIsolevel(this.value)">
+            <input class="input-isolevel" type="range" name="points" step ="0.001" value="0.02" min="0.001" max="1.0" onchange="e.changeIsolevel(this.value)">
           </form>
           <div>
           <h3>Camera:</h3>
@@ -44,9 +44,9 @@
               <button type="button" onclick="e.setCameraDirection('y')">y</button>
               <button type="button" onclick="e.setCameraDirection('z')">z</button>
           </div>
-          <div class="disclaimer">
-            <h3>Disclaimer:</h3>
-            <p>Some calculations shown here are not numerically converged!</p>
+          <div>
+              <h3>Custom file:</h3>
+              <input type="file" multiple id="file-input" />
           </div>
         </div>
       </div>

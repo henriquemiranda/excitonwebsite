@@ -89,7 +89,6 @@ ExcitonWf = {
     this.sizez  = absorption.sizez;
     this.cell   = absorption.cell;
     this.nndist = absorption.nndist;
-    console.log(this.nndist);
     this.atoms  = absorption.atoms;
     this.natoms = absorption.atoms.length;
     this.atom_numbers = absorption.atom_numbers;
@@ -501,26 +500,30 @@ AbsorptionSpectra = {
     container.highcharts(this.HighchartsOptions);
   },
 
-  getData: function(filename) {
-      self = this;
-      $.getJSON(filename, function(data) {
-        self.excitons = data["excitons"];
-        self.eps = data["eps"];
-        self.eel = data["eel"];
-        self.sizex = data["nx"];
-        self.sizey = data["ny"];
-        self.sizez = data["nz"];
-        self.nndist = data["nndist"] + 0.01; //due to numeric precision
-        self.cell = data["lattice"];
-        self.atoms = data["atoms"];
-        self.natoms = self.atoms.length;
-        self.atom_numbers = data["atypes"];
-      });
+  getDataObject: function(data) {
+
+      self.excitons = data["excitons"];
+      self.energies = getTag(["eps",'E/ev[1]'],data);
+      self.eps = getTag(["eps",'EPS-Im[2]'],data);
+      self.sizex = data["nx"];
+      self.sizey = data["ny"];
+      self.sizez = data["nz"];
+      self.nndist = data["nndist"] + 0.01; //due to numeric precision
+      self.cell = data["lattice"];
+      self.atoms = data["atoms"];
+      self.natoms = self.atoms.length;
+      self.atom_numbers = data["atypes"];
+
       var x, series = [];
 
       for (i=0;i<self.eps.length;i++) {
-        x = self.eps[i];
-        series.push([x[0],x[1]]);
+        x = self.energies[i];
+        y = self.eps[i];
+        series.push([x,y]);
+
+        //y = self.eps[i];
+        //x = self.energies[i];
+        //series.push([x[0],x[1]]);
       }
 
       this.HighchartsOptions.series = [];
@@ -544,7 +547,27 @@ AbsorptionSpectra = {
                            });
       }
       this.HighchartsOptions.xAxis.plotLines = exciton_lines;
+
+  },
+ 
+  getDataFilename: function(filename) {
+      self = this;
+      $.getJSON( filename, function(data) { self.getDataObject(data) } );
+
   }
+}
+
+//check if the tags are present and if so return their value
+getTag = function(tags,object) {
+    var ntags = tags.length;
+    for (var i = 0; i < ntags; i++) {
+        var tag = tags[i];
+        if ((tag in object)) {
+            return object[tag];
+        }
+    }
+    alert(tags + " not found in the file. Please report the bug in the issues page: https://github.com/henriquemiranda/excitonwebsite/issues  and attach this file.");
+    throw new Error(tags + " not found in the file.");
 }
 
 var vec_y = new THREE.Vector3( 0, 1, 0 );
@@ -568,12 +591,39 @@ function getCombinations(elements) {
     return combos;
 }
 
+//load a user providede file of the absorption
+function loadCustomFile(event) {
+    for (i=0; i<event.target.files.length; i++) {
+        file = event.target.files[i];
+        getFromJsonFile(file);
+    }
+}
+
+getFromJsonFile = function(file) {
+    var json_reader = new FileReader();
+
+    json_reader.readAsText(file);
+
+    json_reader.onloadend = function(placeholder) {
+        string = json_reader.result;
+        json = JSON.parse(string);
+
+        //absorption spectra
+        a.getDataObject(json);
+        a.init($('#highcharts'));
+
+        //exciton part
+        e.getData(a);
+        e.updateStructure();
+    };
+}
+
 $.ajaxSetup({
     async: false
 });
 
 function updateAll() {
-  a.getData(folder+'/absorptionspectra.json');
+  a.getDataFilename(folder+'/absorptionspectra.json');
   a.init($('#highcharts'));
   e.getData(a);
   e.updateStructure();
@@ -582,8 +632,11 @@ function updateAll() {
 $(document).ready(function(){
   folder = "bn";
 
+  $('#file-input')[0].addEventListener('change', loadCustomFile, false);
+  $('#file-input')[0].addEventListener('click', function() { this.value = '';}, false);
+
   a = AbsorptionSpectra;
-  a.getData(folder+'/absorptionspectra.json');
+  a.getDataFilename(folder+'/absorptionspectra.json');
   a.init($('#highcharts'));
 
   e = ExcitonWf;
