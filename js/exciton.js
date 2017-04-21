@@ -49,6 +49,10 @@ ExcitonWf = {
       this.camera = new THREE.PerspectiveCamera( this.cameraViewAngle, this.dimensions.ratio, this.cameraNear, this.cameraFar);
       this.camera.position.set(0,0,this.cameraDistance);
       this.camera.lookAt(this.scene.position);
+      //add lights to the camera
+      pointLight = new THREE.PointLight( 0x999999 );
+      pointLight.position.set(1,1,2);
+      this.camera.add(pointLight);
 
       //renderer
       this.renderer = new THREE.WebGLRenderer( {antialias:true} );
@@ -191,11 +195,10 @@ ExcitonWf = {
 
   addLights: function() {
       var light;
-      light = new THREE.DirectionalLight( 0xffffff );
-      light.position.set( 0, 0, 100 );
-      light.castShadow = false;
-      this.scene.add( light );
-      light = new THREE.AmbientLight( 0x222222 );
+
+      this.scene.add(this.camera);
+
+      light = new THREE.AmbientLight( 0x333333 );
       this.scene.add( light );
   },
 
