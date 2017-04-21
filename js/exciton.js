@@ -150,7 +150,6 @@ ExcitonWf = {
           object.position.copy(pos);
           object.name = "atom";
           object.atom_number = this.atom_numbers[this.atoms[i][0]];
-          console.log(object.atom_number);
 
           this.scene.add( object );
           this.atomobjects.push(object);
@@ -469,7 +468,7 @@ AbsorptionSpectra = {
       yAxis: { min: 0,
                title: { text: 'Intensity (arb. units)' },
                plotLines: [ {value: 0, color: '#808080' } ] },
-      tooltip: { valueSuffix: 'cm-1' },
+      tooltip: { formatter: function(x) { return Math.round(this.y*100)/100 }  },
       plotOptions: {
           line: {
               animation: false
@@ -533,7 +532,7 @@ AbsorptionSpectra = {
       }
 
       this.HighchartsOptions.series = [];
-      this.HighchartsOptions.series.push({name:  "spectra",
+      this.HighchartsOptions.series.push({name:  "eps",
                                           color: "#0066FF",
                                           marker: {radius: 2, symbol: "circle"},
                                           data: series });
