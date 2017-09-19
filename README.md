@@ -25,10 +25,6 @@ analyse part of the bse_bn.py script provided in the tutorial.
 We reproduce the code here:
 
 ```python
-    #read the yambo output files from the bse folder
-    y = YamboOut('bse')
-    y.pack()
-
     #get the absorption spectra in the folder 'bse'
     a = YamboBSEAbsorptionSpectra('yambo',path='bse')
     
