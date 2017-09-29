@@ -25,7 +25,7 @@
 <header>
 	<ul class="navigation">
 		<li><a href="index.html">Home</a></font></li>
-		<li><a href="exciton.html">Excitons</a></font></li>
+		<li><a href="exciton.html">Phonons</a></font></li>
 	</ul>
 </header>
 
@@ -37,11 +37,7 @@
 <p>This website allows you to visualize your own calculations. For that you need to have a <code>.json</code> file with the information to display. Currently this files can be generated using yambopy:</p>
 <p><a href="https://github.com/henriquemiranda/yambopy">https://github.com/henriquemiranda/yambopy</a></p>
 <p>running your BSE calculation diagonalizing the excitonic hamiltonian. Then you can generate this files using a script similar to the one present in the analyse part of the bse_bn.py script provided in the tutorial. We reproduce the code here:</p>
-<pre class="sourceCode python"><code class="sourceCode python">    <span class="co">#read the yambo output files from the bse folder</span>
-    y = YamboOut(<span class="st">&#39;bse&#39;</span>)
-    y.pack()
-
-    <span class="co">#get the absorption spectra in the folder &#39;bse&#39;</span>
+<pre class="sourceCode python"><code class="sourceCode python">    <span class="co">#get the absorption spectra in the folder &#39;bse&#39;</span>
     a = YamboBSEAbsorptionSpectra(<span class="st">&#39;yambo&#39;</span>,path=<span class="st">&#39;bse&#39;</span>)
     
     <span class="co"># first we get the energies of teh ecitonic states:</span>
